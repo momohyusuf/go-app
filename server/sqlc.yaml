@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "custom_sql/queries"
+    schema: "custom_sql/schema"
+    gen:
+      go:
+        out: "generated_sql"
+        sql_package: "pgx/v5"

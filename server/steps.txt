@@ -1,0 +1,3 @@
+Step One: Create a server and define a basic route
+Step Two: Establish connection to sql database
+Step Three: use goose to create Your database table
