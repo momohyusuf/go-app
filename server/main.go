@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 	"github.com/momoh-yusuf/note-app/config"
 	authservice "github.com/momoh-yusuf/note-app/services/auth_service"
 	"github.com/momoh-yusuf/note-app/utils"
@@ -17,6 +19,10 @@ func main() {
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Hello world"))
 	})
+
+	// Accessing env variables
+	godotenv.Load(".env")
+	PORT := os.Getenv("PORT")
 
 	apiRouter := chi.NewRouter()
 
@@ -31,5 +37,5 @@ func main() {
 	// for starting server
 	config.Db_Query()
 	fmt.Println("Server Running on port number: 3000")
-	http.ListenAndServe(":3000", router)
+	http.ListenAndServe(":"+PORT, router)
 }
