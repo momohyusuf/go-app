@@ -7,9 +7,9 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -90,8 +90,7 @@ func CustomResponseInJson(w http.ResponseWriter, statusCode int, data interface{
 }
 
 func GenerateJwtToken(claims jwt.MapClaims) string {
-	// Accessing env variables
-	godotenv.Load(".env")
+	claims["exp"] = jwt.NewNumericDate(time.Now().Add(15 * time.Minute))
 	JWT_KEY := os.Getenv("JWT_KEY")
 	var (
 		key []byte
@@ -99,9 +98,8 @@ func GenerateJwtToken(claims jwt.MapClaims) string {
 		s   string
 	)
 
-	ecdsaKey := []byte(JWT_KEY)
+	key = []byte(JWT_KEY)
 
-	key = ecdsaKey
 	t = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	createdToken, err := t.SignedString(key)
@@ -114,4 +112,29 @@ func GenerateJwtToken(claims jwt.MapClaims) string {
 	s = createdToken
 
 	return s
+}
+
+func ValidateJwtToken(token string) (interface{}, error) {
+
+	JWT_KEY := os.Getenv("JWT_KEY")
+	tk, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
+
+		// Don't forget to validate the alg is what you expect:
+		fmt.Println()
+		_, ok := t.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+		}
+		secretKey := []byte(JWT_KEY)
+
+		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tk.Claims, nil
+
 }

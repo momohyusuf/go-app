@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/joho/godotenv"
 	"github.com/momoh-yusuf/note-app/generated_sql"
 )
 
@@ -17,8 +16,6 @@ type DatabaseConnection struct {
 
 func Db_Query() *generated_sql.Queries {
 	ctx := context.Background()
-	// Accessing env variables
-	godotenv.Load(".env")
 	DB_URL := os.Getenv("DATABASE_URL")
 
 	conn, err := pgx.Connect(ctx, DB_URL)

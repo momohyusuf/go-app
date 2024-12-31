@@ -57,7 +57,15 @@ func HandleUserRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// insert into the data base
+	// check if an account with the email already exist
+	// validate that both email and password are valid
+	_, err = config.Db_Query().FindUserByEmail(ctx, RequestBody.Email)
+
+	if err == nil {
+		data["msg"] = fmt.Sprintf("An account with %v already exist.", RequestBody.Email)
+		utils.CustomResponseInJson(w, http.StatusBadRequest, data, nil)
+		return
+	}
 
 	result, err := config.Db_Query().CreateUser(ctx, generated_sql.CreateUserParams{
 		UserName:     strings.TrimSpace(RequestBody.User_name),
@@ -73,8 +81,7 @@ func HandleUserRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	utils.CustomResponseInJson(w, http.StatusCreated, result, nil)
-	w.WriteHeader(201)
-	w.Write([]byte("Registered successfully"))
+
 }
 
 type LoginRequestBody struct {
@@ -83,7 +90,7 @@ type LoginRequestBody struct {
 }
 
 func HandleUerLogin(w http.ResponseWriter, r *http.Request) {
-	// ctx := context.Background()
+	ctx := context.Background()
 	var requestBody LoginRequestBody
 
 	decoder := json.NewDecoder(r.Body)
@@ -108,7 +115,7 @@ func HandleUerLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate that both email and password are valid
-	user, err := config.Db_Query().FindUserByEmail(context.Background(), requestBody.Email)
+	user, err := config.Db_Query().FindUserByEmail(ctx, requestBody.Email)
 
 	if err != nil {
 		data["msg"] = fmt.Sprintf("No record found for %v", requestBody.Email)
@@ -129,7 +136,6 @@ func HandleUerLogin(w http.ResponseWriter, r *http.Request) {
 		"user_email": user.Email,
 		"user_id":    user.UserID,
 		"user_type":  user.UserType,
-		"exp":        time.Now().Add(10 * time.Hour),
 	}
 	accessToken := utils.GenerateJwtToken(data)
 

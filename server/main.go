@@ -8,12 +8,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
+	custommiddleware "github.com/momoh-yusuf/note-app/Custom_middleware"
 	"github.com/momoh-yusuf/note-app/config"
 	authservice "github.com/momoh-yusuf/note-app/services/auth_service"
+	noteservice "github.com/momoh-yusuf/note-app/services/note_service"
 	"github.com/momoh-yusuf/note-app/utils"
 )
 
 func main() {
+	// load env variables
+	godotenv.Load(".env")
 	router := chi.NewRouter()
 	router.Use(middleware.Logger)
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +34,13 @@ func main() {
 	apiRouter.Route("/auth", func(r chi.Router) {
 		r.Post("/register", authservice.HandleUserRegister)
 		r.Post("/login", authservice.HandleUerLogin)
+	})
+
+	// defining note routes
+
+	apiRouter.Route("/note", func(r chi.Router) {
+		r.Use(custommiddleware.AuthenticateUser)
+		r.Post("/create", noteservice.HandleNoteCreation)
 	})
 
 	router.Mount("/api", apiRouter)
